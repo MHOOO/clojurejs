@@ -29,8 +29,9 @@
          "'a' in {'a' : 1}")))
 
 (deftest types
-  (is (= (js (array? [1 2 3]))
-         "([1,2,3] instanceof Array)"))
+  (is (= true
+         (js-eval* {:preload *boot-js*}
+                   (array? [1 2 3]))))
 
   (is (= (js (isa? "foobar" "String"))
          "(\"foobar\" instanceof String)")))
@@ -56,6 +57,26 @@
                 [p1 p2]))
             (test)))))
 
+(deftest dotimes-test
+  (is (= 100
+         (js-eval
+          (defn test []
+            (let [sum 0]
+              (dotimes [i 5]
+                (dotimes [j 5]
+                  (set! sum (+ sum (* i j)))))
+              sum))
+          (test)))))
+
+(deftest reduce-test
+  (is (= 120
+         (js-eval* {:preload *boot-js*}
+                   (defn test []
+                     (reduce (fn [r x] (* r x))
+                             1
+                             [1 2 3 4 5]))
+                   (test)))))
+
 (deftest core-fns
   (is (= (js (defn has-foo? [] (contains? {:foo 1 :bar 2} :foo)))
          "has_foop = function () { return 'foo' in {'foo' : 1,'bar' : 2}; }"))
@@ -68,4 +89,6 @@
 
   (is (= ["foo" "bar" "baz"] (js-eval* {:preload *boot-js*} (keys {:foo 1 :bar 2 :baz 3}))))
 
-  (is (= [2 4 6] (js-eval* {:preload *boot-js*} (filter (fn [x] (=== (% x 2) 0)) [1 2 3 4 5 6])))))
+  (is (= [2 4 6] (js-eval* {:preload *boot-js*} (filter (fn [x] (=== (% x 2) 0)) [1 2 3 4 5 6]))))
+
+  (is (= true (js-eval* {:preload *boot-js*} (map? {:a 1 :b 2})))))
